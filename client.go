@@ -28,12 +28,15 @@ type Client struct {
 	connected      bool                        // True until Disconnect is called.
 	handlers       map[string]func(e Event)    // Event handlers.
 	respQ          chan map[string]interface{} // Queue of received responses.
+	NeedLog        bool                        //Need to log into stdout
 }
 
 // poll listens for responses/events.
 // This function blocks until Disconnect is called.
 func (c *Client) poll() {
-	Logger.Println("started polling")
+	if c.NeedLog {
+		Logger.Println("started polling")
+	}
 
 	for c.connected {
 		m := make(map[string]interface{})
@@ -43,7 +46,9 @@ func (c *Client) poll() {
 			} else if websocket.IsUnexpectedCloseError(err) {
 				c.Disconnect()
 			}
-			Logger.Println("read from WS:", err)
+			if c.NeedLog {
+				Logger.Println("read from WS:", err)
+			}
 			continue
 		}
 

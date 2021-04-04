@@ -33,14 +33,18 @@ func (c *Client) Connect() error {
 	}
 
 	if !respGAR.AuthRequired {
-		Logger.Println("logged in (no authentication required)")
+		if c.NeedLog {
+			Logger.Println("logged in (no authentication required)")
+		}
 		c.connected = true
 		go c.poll()
 		return nil
 	}
 
 	auth := getAuth(c.Password, respGAR.Salt, respGAR.Challenge)
-	Logger.Println("auth:", auth)
+	if c.NeedLog {
+		Logger.Println("auth:", auth)
+	}
 
 	reqA := NewAuthenticateRequest(auth)
 	if err = c.conn.WriteJSON(reqA); err != nil {
@@ -55,7 +59,9 @@ func (c *Client) Connect() error {
 		return errors.New(respA.Error())
 	}
 
-	Logger.Println("logged in (authentication successful)")
+	if c.NeedLog {
+		Logger.Println("logged in (authentication successful)")
+	}
 	c.connected = true
 	go c.poll()
 	return nil

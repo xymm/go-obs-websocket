@@ -23,7 +23,9 @@ func (c *Client) SendRequest(req Request) (chan map[string]interface{}, error) {
 	if err := c.conn.WriteJSON(req); err != nil {
 		return nil, err
 	}
-	Logger.Println("sent request", req.ID())
+	if c.NeedLog {
+		Logger.Println("sent request", req.ID())
+	}
 	go func() { future <- c.receive(req.ID()) }()
 	return future, nil
 }
@@ -33,7 +35,9 @@ func (c *Client) receive(id string) map[string]interface{} {
 	for {
 		resp := <-c.respQ
 		if resp["message-id"] == id {
-			Logger.Println("received response", resp["message-id"])
+			if c.NeedLog {
+				Logger.Println("received response", resp["message-id"])
+			}
 			return resp
 		}
 		c.respQ <- resp
